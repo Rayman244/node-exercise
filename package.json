@@ -1,0 +1,23 @@
+{
+  "name": "exercise",
+  "version": "1.0.0",
+  "description": "A little exercise using a Star Wars API [https://swapi.dev/](https://swapi.dev/)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rayman244/node-exercise.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rayman244/node-exercise/issues"
+  },
+  "homepage": "https://github.com/Rayman244/node-exercise#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "express": "^4.18.1"
+  }
+}
