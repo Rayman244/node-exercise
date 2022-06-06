@@ -1,104 +1,54 @@
-const express = require('express');
-const axios = require('axios')
+const express = require("express");
+const axios = require("axios");
 const app = express();
 
-
-const baseUrl = 'https://swapi.dev/api/people/'
-
-let finalArr=[]
-
-const getPeople = async (page = 1)=>{
-    let url= `${baseUrl}?page=${page}`
-    let apiResults = await axios.get(url)
-    // console.log(apiResults?.data);
-    return apiResults?.data
-}
-const getAllPeople = async function(pageNo = 1,) {
-    try{
-    const results = await getPeople(pageNo);
-        // console.log(results.results);
-            finalArr = finalArr.concat(results.results)
-
-        // console.log("Retreiving data from API for page : " + pageNo);
-        if (results.result || results.results.length>0) {
-        return results?.concat(await getAllPeople( pageNo+1));
-
-        } else {
-            // console.log(finalArr);
-            // console.log(customSort(finalArr,sortBy));
-            return finalArr
-        
-        }
-    }catch(err){
-        // console.log(finalArr);
-    }
-  
-  };
-
-  const customSort = (arr, value) => {
-      console.log(arr);
-    if (value === "name") {
-      let sorted = arr.sort((a, b) => {
-        nameA = a[value].toLowerCase();
-        nameB = b[value].toLowerCase();
-        // left out 0, no two names will be the same
-        return nameA < nameB ? -1 : 1;
-      });
-      return sorted;
-    } else {
-      let sorted = arr.sort((a, b) => {
-        return Number(a[value]) - Number(b[value]);
-      });
-      return sorted;
-    }
-  };
- 
-
-app.get('/:id', async (req,res)=>{
-    let data
-    try{
-        axios.get(`${baseUrl}${req.params.id}`).then((res)=>{
-            data = res.data
-            console.log(data.name);
-        })
-        return res.json(data)
-       
-    }catch(err){
-        console.log("Error fetching people by ID",err)
-    }
-})
-
-app.get('/', async (req,res)=>{
-    getAllPeople(); 
-    console.log(finalArr[1]); 
-    	return res.status(200).json(finalArr);
-   
-})
-app.get('/:sortBy', async (req,res)=>{
-    const { sortBy } = req.params;
-    console.log({sortBy});
-  // allowed params
-  const allowedParams = ["name", "height", "mass"];
-  if (!allowedParams.includes(sortBy)) {
-    return res.status(400).json({ message: "Sort by params not allowed." });
-  }
-  getAllPeople()
+// All people route
+app.get("/", async (req, res) => {
+  const baseUrl = "https://swapi.dev/api/people/?page=1";
   try {
-    
-    // conditions to sort based on value passed into the custom sort function
-    if (sortBy === "name") {
-      finalArr = customSort(finalArr, "name");
-    }
-    if (sortBy === "height") {
-      finalArr = customSort(finalArr, "height");
-    }
-    if (sortBy === "mass") {
-        finalArr = customSort(finalArr, "mass");
+    let finalArr = [];
+    let response = await axios.get(baseUrl);
+    while (response.data.next) {
+      response = await axios.get(response.data.next);
+      // all people from each page in one variable
+      let people = response.data.results;
+      // adding each list of people to the final array
+      finalArr = finalArr.concat(people);
     }
     return res.status(200).json(finalArr);
   } catch (error) {
-    res.status(500).json({ error: "API not able to get people" });
+    res.status(500).json({ error: "Cant get planets" });
   }
-})
+});
+// Sorted route
+app.get("/:sortBy", async (req, res) => {
+  const sortBy = req.params.sortBy;
+
+  try {
+    let finalArr = [];
+    const swapiUrl = "https://swapi.dev/api/people/";
+    let response = await axios.get(swapiUrl);
+    // if the data has a next property than keep adding to the final array 
+    while (response.data.next) {
+      response = await axios.get(response.data.next);
+      // all people from each page in one variable
+      let people = response.data.results;
+      finalArr = finalArr.concat(people);
+    }
+    //   conditional to handle the different sort options
+    if (sortBy === "name") {
+      let sorted = finalArr.sort((a, b) => (a.name < b.name ? -1 : 1));
+      return res.status(200).json(sorted);
+    } else if (sortBy === "height") {
+      let sorted = finalArr.sort((a, b) => a.height - b.height);
+      return res.status(200).json(sorted);
+    } else if (sortBy === "mass") {
+      let sorted = finalArr.sort((a, b) => a.mass - b.mass);
+      return res.status(200).json(sorted);
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Error getting people" });
+  }
+});
 
 module.exports = app;

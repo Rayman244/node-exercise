@@ -3,10 +3,11 @@ const axios = require("axios");
 const app = express();
 
 app.get("/", async (req, res) => {
-  const swapiUrl = "https://swapi.dev/api/planets/?page=1";
+  const baseUrl = "https://swapi.dev/api/planets/";
   try {
     let finalArr = [];
-    let response = await axios.get(swapiUrl);
+    let response = await axios.get(baseUrl);
+    // if the data has a next property than keep adding to the final array 
     while (response.data.next) {
       response = await axios.get(response.data.next);
       // all planets from each page in one variable
@@ -26,7 +27,7 @@ app.get("/", async (req, res) => {
     }
     return res.status(200).json(finalArr);
   } catch (error) {
-    res.status(500).json({ error: "Cant get planets" });
+    res.status(500).json({ error: "Error getting planets" });
   }
 });
 
